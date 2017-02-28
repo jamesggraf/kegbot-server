@@ -5,8 +5,8 @@
 Kegbot is a hardware and software system to record and monitor access to a
 kegerator.  For more information and documentation, see http://kegbot.org/
 """
-
-from setuptools import setup, find_packages
+import os
+from setuptools import setup, find_packages, Command
 
 VERSION = '1.2.3'
 DOCLINES = __doc__.split('\n')
@@ -62,7 +62,20 @@ def setup_package():
       entry_points = {
         'console_scripts': ['instance=django.core.management:execute_manager'],
       },
+      cmdclass={
+        'clean': CleanCommand,
+      }
   )
+
+class CleanCommand(Command):
+    """Custom clean command to tidy up the project root."""
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        os.system('rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info')
 
 if __name__ == '__main__':
   setup_package()
