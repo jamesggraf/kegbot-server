@@ -111,7 +111,8 @@ class KegListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return models.Keg.objects.all().order_by('-id')
+        # return models.Keg.objects.all().order_by('-id')
+        return models.Keg.objects.all()
 
 
 def fullscreen(request):
