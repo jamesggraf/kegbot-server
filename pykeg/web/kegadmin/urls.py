@@ -16,6 +16,8 @@ urlpatterns = patterns('pykeg.web.kegadmin.views',
     url(r'^beers/add/$', 'beverage_add', name='kegadmin-add-beverage'),
     url(r'^beers/(?P<beer_id>\d+)/$', 'beverage_detail', name='kegadmin-edit-beverage'),
 
+    url(r'^brewerydb/$', 'brewerydb', name='kegadmin-brewerydb'),
+
     url(r'^devices/link/$', 'link_device', name='kegadmin-link-device'),
 
     url(r'^kegs/$', 'keg_list', name='kegadmin-kegs'),

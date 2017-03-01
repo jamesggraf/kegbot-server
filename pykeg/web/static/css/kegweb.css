@@ -1680,6 +1680,16 @@ legend + .control-group {
 .form-horizontal .control-group:after {
   clear: both;
 }
+.brewerydb .controls {
+  margin-left: 180px;
+}
+.brewerydb .control-label {
+  float: left;
+  width: 160px;
+  padding-top: 5px;
+  text-align: right;
+  font-weight: bold;
+}
 .form-horizontal .control-label {
   float: left;
   width: 160px;

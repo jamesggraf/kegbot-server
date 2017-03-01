@@ -42,6 +42,8 @@ urlpatterns = patterns('pykeg.web.api.views',
     url(r'^auth-tokens/(?P<auth_device>[\w\.]+)/(?P<token_value>\w+)/assign/?$',
         'assign_auth_token'),
 
+    url(r'^brewerydb/?$', 'brewerydb_search'),
+
     url(r'^controllers/?$', 'all_controllers'),
     url(r'^controllers/(?P<controller_id>\d+)/?$', 'get_controller'),
 

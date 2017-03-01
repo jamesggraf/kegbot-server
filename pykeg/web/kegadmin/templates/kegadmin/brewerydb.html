@@ -1,0 +1,76 @@
+{% extends "kegadmin/base.html" %}
+{% load kegweblib %}
+{% load crispy_forms_tags %}
+
+{% block title %}Kegbot Admin: Brewery DB Lookup | {{ block.super }}{% endblock %}
+{% block pagetitle %}Kegbot Admin: Brewery DB Lookup {% endblock %}
+
+{% block kegadmin-main %}
+<script type="text/javascript" src="{{ STATIC_URL }}angular/angular.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}angular/angular-animate.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}angular/angular-sanitize.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}angular/ui-bootstrap-tpls-2.5.0.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}brewerydb/js/brewerydb-suggestion.js"></script>
+
+<h2>Brewery DB Lookup</h2>
+
+{% if beer_type.picture %}
+<div class="row-fluid">
+    <div class="span10">
+        <p><img src="{{beer_type.picture.resized.url}}"/></p>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .typeahead-demo .custom-popup-wrapper {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        display: none;
+        background-color: #f9f9f9;
+    }
+
+    .typeahead-demo .custom-popup-wrapper > .message {
+        padding: 10px 20px;
+        border-bottom: 1px solid #ddd;
+        color: #868686;
+    }
+
+    .typeahead-demo .custom-popup-wrapper > .dropdown-menu {
+        position: static;
+        float: none;
+        display: block;
+        min-width: 160px;
+        background-color: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+</style>
+
+<div ng-app="BreweryDbTypeahead" class="brewerydb">
+    <script type="text/ng-template" id="customTemplate.html">
+        <a>
+            <img ng-src="{% templatetag openvariable %}match.model.labels.icon{% templatetag closevariable %}" width="48">
+            <span ng-bind-html="match.label | uibTypeaheadHighlight:query"></span>
+        </a>
+    </script>
+
+
+    <div ng-controller="TypeaheadCtrl">
+        <label for="search" class="control-label">Search</label>
+        <div class="controls">
+            <input id="search" type="text" ng-model="beerSelected" ng-model-options="modelOptions" placeholder="Type the name of a beer" uib-typeahead="beer as beer.displayName for beer in getBeers($viewValue)" typeahead-loading="loadingLocations" typeahead-no-results="noResults" typeahead-template-url="customTemplate.html" class="form-control">
+            <i ng-show="loadingLocations" class="glyphicon glyphicon-refresh"></i>
+            <div ng-show="noResults">
+                <i class="glyphicon glyphicon-remove"></i> No Results Found
+            </div>
+        </div>
+    </div>
+</div>
+<hr/>
+{% crispy form %}
+
+{% endblock %}
