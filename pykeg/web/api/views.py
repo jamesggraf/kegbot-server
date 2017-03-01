@@ -18,6 +18,9 @@
 
 """Kegweb RESTful API views."""
 
+import json
+import requests
+
 import datetime
 import logging
 from functools import wraps
@@ -52,14 +55,17 @@ _LOGGER = logging.getLogger(__name__)
 
 RESULT_OK = {'result': 'ok'}
 
+
 ### Decorators
 
 
 def auth_required(view_func):
     def wrapped_view(*args, **kwargs):
         return view_func(*args, **kwargs)
+
     util.set_needs_auth(wrapped_view)
     return wraps(view_func)(wrapped_view)
+
 
 ### Helpers
 
@@ -73,6 +79,7 @@ def _form_errors(form):
             for error in field.errors:
                 ret[name].append(error)
     return ret
+
 
 ### Endpoints
 
@@ -229,6 +236,36 @@ def add_drink_photo(request, drink_id):
     return protolib.ToProto(pic, full=True)
 
 
+@csrf_exempt
+@auth_required
+def brewerydb_search(request):
+    if request.method != 'GET':
+        raise Http404('Method not supported')
+
+    client_secret = _get_brewerydb_api_key(request)
+    query = request.GET.get('q')
+    url = _get_brewerydb_search_url(request)
+
+    res = requests.get(url, params={'q': query, 'type': 'beer', 'withBreweries': 'Y', 'key': client_secret})
+
+    if res.status_code != requests.codes.ok:
+        return []
+
+    json_res = json.loads(res.text)
+
+    return json_res['data']
+
+
+def _get_brewerydb_api_key(request):
+    plugin = request.plugins.get('brewerydb', None)
+    return plugin.get_credentials()
+
+
+def _get_brewerydb_search_url(request):
+    plugin = request.plugins.get('brewerydb', None)
+    return plugin.BREWERY_DB_API_SEARCH
+
+
 def _save_pour_pic(request, drink):
     pic = models.Picture.objects.create(
         image=request.FILES['photo'],
@@ -265,7 +302,7 @@ def get_status(request):
     events = models.SystemEvent.objects.all()[:5]
     kegs = models.Keg.objects.all().filter(status=models.Keg.STATUS_ON_TAP)
     meters = models.FlowMeter.objects.all()
-    sound_events = []   # deprecated
+    sound_events = []  # deprecated
     taps = models.KegTap.objects.all()
     toggles = models.FlowToggle.objects.all()
 
@@ -659,14 +696,14 @@ def _tap_detail_post(request, tap):
         duration = 0
     try:
         drink = request.backend.record_drink(tap,
-            ticks=cd['ticks'],
-            volume_ml=cd.get('volume_ml'),
-            username=cd.get('username'),
-            pour_time=pour_time,
-            duration=duration,
-            shout=cd.get('shout'),
-            tick_time_series=cd.get('tick_time_series'),
-            photo=request.FILES.get('photo', None))
+                                             ticks=cd['ticks'],
+                                             volume_ml=cd.get('volume_ml'),
+                                             username=cd.get('username'),
+                                             pour_time=pour_time,
+                                             duration=duration,
+                                             shout=cd.get('shout'),
+                                             tick_time_series=cd.get('tick_time_series'),
+                                             photo=request.FILES.get('photo', None))
         return protolib.ToProto(drink, full=True)
     except backend.exceptions.BackendError, e:
         raise kbapi.ServerError(str(e))
@@ -722,7 +759,7 @@ def register(request):
         photo = request.FILES.get('photo', None)
         try:
             user = request.backend.create_new_user(username, email=email,
-                password=password, photo=photo)
+                                                   password=password, photo=photo)
             return protolib.ToProto(user, full=True)
         except backend.exceptions.UserExistsError:
             user_errs = errors.get('username', [])

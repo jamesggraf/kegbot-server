@@ -37,6 +37,7 @@ WHITELISTED_API_PATHS = (
     '/api/v1/version',
     '/api/get-api-key',
     '/api/v1/get-api-key',
+    '/api/brewerydb'
 )
 
 WHITELISTED_API_PATHS += getattr(settings, 'KEGBOT_EXTRA_WHITELISTED_API_PATHS', ())

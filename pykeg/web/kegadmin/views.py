@@ -28,6 +28,7 @@ import subprocess
 
 from operator import itemgetter
 
+from django.core.files import File
 from django.conf import settings
 from django.contrib import messages
 from pykeg.web.decorators import staff_member_required
@@ -44,6 +45,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from kegbot.util import kbjson
+from pykeg.core.util import download_to_tempfile
 
 from pykeg.backup import backup
 from pykeg.web.api import devicelink
@@ -834,6 +836,60 @@ def beverage_detail(request, beer_id):
     context['form'] = form
     return render_to_response('kegadmin/beer_type_detail.html', context_instance=context)
 
+@staff_member_required
+def brewerydb(request):
+
+    beverage_form = forms.BreweryDbLookupForm()
+
+    if request.method == 'POST':
+        # This probably shouldn't live here and I shouldn't be doing this this way. But my time on the bench is coming
+        # to a close so this is the fastest way to do this
+        producer = models.BeverageProducer.objects.get_or_create(name=request.POST.get('brewer_name'),
+                                                                 origin_state=request.POST.get('brewer_state'),
+                                                                 origin_city=request.POST.get('brewer_city'),
+                                                                 is_homebrew=False,
+                                                                 url=request.POST.get('brewer_url'),
+                                                                 description=request.POST.get('brewer_description'))[0]
+
+        models.Beverage.objects.get_or_create(name=request.POST.get('name'),
+                                              beverage_type='beer',
+                                              producer=producer,
+                                              style=request.POST.get('style'),
+                                              abv_percent=clean_column(request.POST, 'abv_percent'),
+                                              original_gravity=clean_column(request.POST, 'original_gravity'),
+                                              specific_gravity=clean_column(request.POST, 'specific_gravity'),
+                                              ibu=clean_column(request.POST, 'ibu'),
+                                              srm=clean_column(request.POST, 'srm'),
+                                              description=request.POST.get('description'),
+                                              picture=get_picture(request.POST))
+
+        messages.success(request, 'Beer type added.')
+        return redirect('kegadmin-beverages')
+
+    context = RequestContext(request)
+    context['beer_type'] = 'new'
+
+    context['form'] = beverage_form
+    return render_to_response('kegadmin/brewerydb.html', context_instance=context)
+
+def clean_column(values, field):
+    value = values.get(field)
+    if value is None or value.strip() == '':
+        return None
+
+    return value
+
+def get_picture(values):
+    image_url = values.get('brewery_db_image_url')
+    if image_url is not None and image_url.strip() != '':
+        tempfile_path = download_to_tempfile(image_url)
+        with open(tempfile_path, 'r') as file:
+            pic = models.Picture.objects.create()
+            pic.image.save(tempfile_path, File(file))
+            pic.save()
+        return pic
+    else:
+        return None
 
 @staff_member_required
 def beverage_add(request):

@@ -373,6 +373,49 @@ class AdvancedSiteSettingsForm(forms.ModelForm):
         )
     )
 
+class BreweryDbLookupForm(forms.ModelForm):
+    class Meta:
+        model = models.Beverage
+        fields = ('name', 'style', 'producer', 'vintage_year', 'abv_percent',
+                  'original_gravity', 'specific_gravity', 'ibu', 'srm', 'color_hex',
+                  'star_rating', 'untappd_beer_id', 'description')
+
+    brewery_db_image_url = forms.Field(required=False,
+                                 help_text='URL to an image for this beer type.')
+
+    brewer_name = forms.CharField(label='Brewer Name', required=True)
+    brewer_state = forms.CharField(label='Brewer State', required=False)
+    brewer_city = forms.CharField(label='Brewer City', required=False)
+    brewer_url = forms.CharField(label='Brewer URL', required=False)
+    brewer_description = forms.CharField(label='Brewer Description', required=False)
+
+    helper = FormHelper()
+    helper.form_class = 'form-horizontal'
+    helper.layout = Layout(
+        Field('name', required=True),
+        Field('style'),
+        Field('producer_name', type='hidden'),
+        Field('vintage_year', type='hidden'),
+        Field('abv_percent'),
+        Field('original_gravity'),
+        Field('specific_gravity'),
+        Field('ibu'),
+        Field('srm'),
+        Field('color_hex', type='hidden'),
+        Field('star_rating', type='hidden'),
+        Field('untappd_beer_id', type='hidden'),
+        Field('description'),
+        Field('producer', type='hidden'),
+        Field('brewery_db_image_url', css_class='input-xlarge'),
+        Field('brewer_name'),
+        Field('brewer_state'),
+        Field('brewer_city'),
+        Field('brewer_url', css_class='input-xlarge'),
+        Field('brewer_description'),
+        FormActions(
+            Submit('submit', 'Save', css_class='btn-primary'),
+        )
+    )
 
 class BeverageForm(forms.ModelForm):
     class Meta:
